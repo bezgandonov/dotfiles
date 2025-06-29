@@ -30,6 +30,8 @@ filetype plugin indent on
 colorscheme pablo
 
 "maps
+let mapleader=" "
+
 map <C-j> 5j
 map <C-k> 5k
 vmap <C-j> 5j
@@ -40,12 +42,31 @@ map <C-u> <C-u>zz
 
 imap <C-c> <Esc>
 
-map n nzzzv
-map N Nzzzv
+nnoremap n nzzzv
+nnoremap N Nzzzv
+
+if has("clipboard")
+  xnoremap <Leader>y "*y
+elseif executable("xclip") 
+  xnoremap <Leader>y y:YankToXclip<CR>
+endif
 
 "TODO: piss your pants!
 "commands
 if !exists(":DiffOrig")
   command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
     \ | wincmd p | diffthis
+endif
+
+if executable("xclip") && !exists(":YankToXclip") && !has("clipboard")
+  command! YankToXclip call s:YankToXclip()
+  function! s:YankToXclip()
+    let tmpfile=tempname()
+    execute 'vsp' tmpfile
+    normal! "0P
+    write
+    call system('xclip -selection clipboard -r < ' . shellescape(tmpfile))
+    bdelete!
+    call delete(tmpfile)
+  endfunction
 endif
